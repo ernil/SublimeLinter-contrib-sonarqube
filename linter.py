@@ -10,6 +10,8 @@
 
 """This module exports the Sonarqube plugin class."""
 
+import json
+import sublime
 from SublimeLinter.lint import Linter, util
 
 
@@ -32,22 +34,38 @@ class Sonarqube(Linter):
 
         return command + ['*']
 
-    def split_match(self, match):
-        """Return the match with ` quotes transformed to '."""
+    def find_errors(self, output):
 
-        if match:
+        settings = sublime.load_settings('SublimeLinter.sublime-settings').get('user')
 
-            error = match.group('error')
-            warning = match.group('warning')
+        json_data=open(settings["sonar_report_path"]).read()
 
-            if error or warning:
+        if json_data:
+            data = json.loads(json_data)
+            issues = data["issues"]
 
-                import webbrowser
-                new = 2
-                url = "file:////home/morion/projects/Easylitics-2012/.sonar/issues-report/issues-report.html"
-                #webbrowser.open(url,new=new)
+            for issue in issues:
+                yield self.get_issue(issue)
 
-            return match, 0, 0, error, warning, '', None
+        return None, None, None, None, None, '', None
 
-        return match, None, None, None, None, '', None
+
+    def get_issue(self, issue):
+
+        match = {}
+        match["message"] = issue["severity"] + ": " + issue["message"]
+        match["line"] = issue["line"] - 1
+        match["col"] = 0
+
+        error = None
+        warning = None
+        if issue["severity"] == "MAJOR":
+            match["type"] = 'error'
+            error = True
+        elif issue["severity"] == "MINOR":
+            match["type"] = 'warning'
+            warning = True
+
+        return match, match["line"], 0, error, warning, match["message"], None
+
 
