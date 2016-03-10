@@ -12,6 +12,7 @@
 
 import json
 import sublime
+import pprint
 from SublimeLinter.lint import Linter, util
 
 
@@ -53,16 +54,17 @@ class Sonarqube(Linter):
     def get_issue(self, issue):
 
         match = {}
-        match["message"] = issue["severity"] + ": " + issue["message"]
-        match["line"] = issue["line"] - 1
+        severity = issue.get("severity", "MAJOR");
+        match["message"] =  severity + ": " + issue.get("message", '')
+        match["line"] = issue.get("line", 1) - 1
         match["col"] = 0
 
         error = None
         warning = None
-        if issue["severity"] == "MAJOR":
+        if severity == "MAJOR":
             match["type"] = 'error'
             error = True
-        elif issue["severity"] == "MINOR":
+        elif severity == "MINOR":
             match["type"] = 'warning'
             warning = True
 
