@@ -19,7 +19,7 @@ from SublimeLinter.lint import Linter, util
 class Sonarqube(Linter):
     """Provides an interface to sonarqube."""
 
-    syntax = ('javascript', 'php', 'javascriptnext')
+    syntax = ('javascript', 'php', 'java')
     executable = 'sonar-runner'
     version_args = '--version'
     version_re = r'Scanner (?P<version>[0-9]\.[0-9])'
